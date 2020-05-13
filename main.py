@@ -8,14 +8,16 @@ def main():
 	logger = Logger(mode = [print , E.add_line])
 	E.log = logger.log
 
-	E.new_variable("Dev Acc")
-	E.new_variable("Test Acc")
+	E.new_variable("Dev ROC-AUC")
+	E.new_variable("Dev PRC-AUC")
+	E.new_variable("Test ROC-AUC")
+	E.new_variable("Test PRC-AUC")
 	E.new_variable("Train Loss")
 	E.new_variable("Dev Loss")
 	E.new_variable("Test Loss")
 
 
-	kfold(C , choose_one = 1)
+	kfold(C)
 
 
 if __name__ == "__main__":

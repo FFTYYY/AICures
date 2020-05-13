@@ -12,11 +12,11 @@ def load_data_file(path , mode):
 		fil.readline()
 		for line in fil:
 			if mode == "test":
-				mol , label = line.strip().split(",")[0] , -1
+				mol , label 	= line.strip().split(",")[0] , -1
 			elif mode == "train":
 				_ , mol , label = line.strip().split(",")
 			elif mode == "kfold":
-				mol , label = line.strip().split(",")
+				mol , label 	= line.strip().split(",")
 
 			mol = read_smiles(mol) #将smiles字符串转成networkx graph
 

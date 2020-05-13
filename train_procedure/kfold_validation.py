@@ -3,59 +3,67 @@ from prepare import get_data , get_model , get_others
 from .train import train
 from .evaluate import evaluate
 
-def kfold(C , k = 10 , choose_one = -1):
+def kfold(C , k = 10 , choose_one = []):
 	device = 0
 
-	ac_best_acc 	= 0.
-	ac_best_e_tacc 	= 0.
-	useful_run 		= 0
+	metric = "PRC-AUC"
+
+	roc_aucs 	= []
+	prc_aucs 	= []
 	for run_id in range(k):
 
-		if choose_one >= 0 and run_id != choose_one: #只跑选择的那一个
+		if len(choose_one) > 0 and run_id not in choose_one: #只跑选择的那一个
 			continue
 
 		(trainset , devset , testset) , lab_num = get_data  (C , fold = run_id)
 		model 									= get_model (C , lab_num)
 		optimer , loss_func 					= get_others(C , model)
 
-
 		E.log("%d th run starts on device %d\n" % (run_id , device))
 
 		best_epoch	= -1
-		best_acc 	= -1
-		best_e_tacc = -1
+		best_metric = -1
+		tes_roc_auc = -1
+		tes_prc_auc = -1
 		for epoch_id in range(C.num_epoch):
-			model = train   (C , model , trainset , loss_func , optimer , epoch_id , run_id , 
-				device = device , )
-			acc   = evaluate(C , model , devset   , loss_func ,           epoch_id , run_id , 
-				device = device , eval_name = "Dev")
-			tacc  = evaluate(C , model , testset  , loss_func ,           epoch_id , run_id , 
-				device = device , eval_name = "Test")
+			model = train(C, model, trainset, loss_func, optimer, epoch_id, run_id, device)
+			droc_auc , dprc_auc = evaluate(C, model, devset , loss_func, epoch_id, run_id, device, "Dev")
+			troc_auc , tprc_auc = evaluate(C, model, testset, loss_func, epoch_id, run_id, device, "Test")
 
-			E.log("Epoch %d of run %d ended. Dev acc = %.2f%% Test acc = %.2f%%\n" % (
-				epoch_id , run_id , 100 * tacc , 100 * acc , 
-			))
+			E.log("Epoch %d of run %d ended." % (epoch_id , run_id))
+			E.log("Dev  Roc-Auc = %.4f Prc-Auc = %.4f" % (droc_auc , dprc_auc))
+			E.log("Test Roc-Auc = %.4f Prc-Auc = %.4f" % (troc_auc , tprc_auc))
+			E.log()
 
-			if best_epoch < 0 or acc > best_acc:
+			if best_epoch < 0 or dprc_auc > best_metric:
 				best_epoch 	= epoch_id
-				best_acc 	= acc
-				best_e_tacc = tacc
+				best_metric = dprc_auc
+				tes_roc_auc = troc_auc
+				tes_prc_auc = tprc_auc
 
-		E.log("%d th run ends. best epoch = %d , best dev acc = %.2f%% , got test acc = %.2f%%" % (
-			run_id , best_epoch , best_acc , best_e_tacc , 
-		))
+		E.log("%d th run ends. best epoch = %d" % (run_id , best_epoch))
+		E.log("Best Dev %s = %.4f"                     % (metric , best_metric))
+		E.log("Got Test Roc-Auc = %.4f Prc-Auc = %.4f" % (tes_roc_auc , tes_prc_auc))
+		E.log()
 
-		E["Test Acc"]["Best"].update(best_e_tacc , run_id)
-		E["Dev Acc" ]["Best"].update(best_acc    , run_id)
-		ac_best_acc 	+= best_acc
-		ac_best_e_tacc 	+= best_e_tacc
-		useful_run 		+= 1
+		E["Dev %s" % metric]["Best"].update(best_metric , run_id)
+		E["Test ROC-AUC"]["Best"].update(tes_roc_auc , run_id)
+		E["Test PRC-AUC"]["Best"].update(tes_prc_auc , run_id)
+
+		roc_aucs.append(tes_roc_auc)
+		prc_aucs.append(tes_prc_auc)
 		E.log("--------------------------------------------------------------")
 
-	E["Dev Acc" ].update(ac_best_acc    / useful_run)
-	E["Test Acc"].update(ac_best_e_tacc / useful_run)
-	E.log ("avg best dev acc is %.2f%%" % (ac_best_acc    / useful_run))
-	E.log ("avg got test acc is %.2f%%" % (ac_best_e_tacc / useful_run))
+	roc_auc_avg = sum(roc_aucs) / len(roc_aucs)
+	roc_auc_std = (sum([(x - roc_auc_avg) ** 2 for x in roc_aucs]) / len(roc_aucs)) ** 0.5
+	prc_auc_avg = sum(prc_aucs) / len(prc_aucs)
+	prc_auc_std = (sum([(x - prc_auc_avg) ** 2 for x in prc_aucs]) / len(prc_aucs)) ** 0.5
+
+	E["Test ROC-AUC"].update("%.4f ± %.4f" % (roc_auc_avg , roc_auc_std))
+	E["Test PRC-AUC"].update("%.4f ± %.4f" % (prc_auc_avg , prc_auc_std))
+	E.log ("got avg test Roc-Auc = %.4f ± %.4f Prc-Auc = %.4f ± %.4f" % (
+		roc_auc_avg , roc_auc_std , prc_auc_avg , prc_auc_std)
+	)
 
 	
 	E.log("All run end!")

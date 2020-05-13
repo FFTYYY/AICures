@@ -21,6 +21,7 @@ def get_prox():
 
 	# others
 	prox.add_argument("info" 		, type = str   , default = "" , editable = True)
+	prox.add_argument("group" 		, type = str   , default = "default")
 
 	return prox
 
@@ -28,5 +29,5 @@ prox = get_prox()
 
 C = prox.assign_from_cmd()
 
-E = new_or_load_experiment(project_name = "PRML" , group_name = "default")
+E = new_or_load_experiment(project_name = "PRML" , group_name = C.group)
 E.use_argument_proxy(prox)
