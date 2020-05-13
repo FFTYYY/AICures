@@ -14,11 +14,10 @@ def ele2num(e):
 def base_parse(g):
 	'''将networkx graph转成DGLGraph'''
 
-	g = DGLGraph()
-
 	feat_elem = [ ele2num(g.nodes[i]["element"]) for i in range(len(g.nodes))]
 	feat_elem = tc.LongTensor(feat_elem)
 
-	g.ndata["element"] = feat_elem
+	g = DGLGraph(g)
+	g.ndata["element"] = feat_elem.cuda()
 
 	return g

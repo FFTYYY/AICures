@@ -1,13 +1,21 @@
 from config import C , E
-from prepare import get_data , get_model , get_others
+from train_procedure.kfold_validation import kfold
+from YTools.experiment_helper.logger import Logger
 import pdb
 
 def main():
-	(trainset , devset , testset) , lab_num = get_data  (C)
-	model 									= get_model (C , lab_num)
-	optimer , loss_func 					= get_others(C , model)
 
-	pdb.set_trace()
+	logger = Logger(mode = [print , E.add_line])
+	E.log = logger.log
+
+	E.new_variable("Dev Acc")
+	E.new_variable("Test Acc")
+	E.new_variable("Train Loss")
+	E.new_variable("Dev Loss")
+	E.new_variable("Test Loss")
+
+
+	kfold(C , choose_one = 1)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@ import pdb
 import torch as tc
 import random
 from config import E
-from .dataloader import load_data
+from .dataloader import load_data_tt , load_data_tdt
 from .graph_parse import base_parse , get_element_num
 from models import get_model_class
 
@@ -13,22 +13,26 @@ def process_graphs(dataset):
 		dgl_g = base_parse(g)
 		dataset[i] = [dgl_g , label]
 
-		label = int(label)
-
 		lab_num = max(lab_num , label) #统计标签数
 
 	return dataset , lab_num + 1
 
-def get_data(C):
+def get_data(C , fold = 0):
 
-	trainset , testset = load_data(C)
+	if fold == "test":
+		trainset , testset = load_data_tt(C)
+
+		dev_size = int(len(trainset) * C.dev_prop)
+		devset   = trainset[:dev_size]
+		trainset = trainset[dev_size:]
+	else: #对 k-fold test，直接读取训练集验证集测试集
+		trainset , devset , testset = load_data_tdt(C , path = "train_cv/fold_%d/" % fold)
+
 
 	trainset , lab_num = process_graphs(trainset)
 	testset  , _       = process_graphs(testset)
+	devset   , _ 	   = process_graphs(devset)
 
-	dev_size = int(len(trainset) * C.dev_prop)
-	devset   = trainset[:dev_size]
-	trainset = trainset[dev_size:]
 
 	return (trainset , devset , testset) , lab_num
 
