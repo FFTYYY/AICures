@@ -2,8 +2,9 @@ from config import E
 from prepare import get_data , get_model , get_others
 from .train import train
 from .evaluate import evaluate
+from utils import copy_param
 
-def kfold(C , k = 10 , choose_one = []):
+def kfold(C , k = 10 , choose_one = [] , p_model = None):
 	device = 0
 
 	metric = "PRC-AUC"
@@ -16,8 +17,13 @@ def kfold(C , k = 10 , choose_one = []):
 			continue
 
 		(trainset , devset , testset) , lab_num = get_data  (C , fold = run_id)
-		model 									= get_model (C , lab_num)
-		optimer , loss_func 					= get_others(C , model)
+
+		model = get_model (C , lab_num)
+		if p_model is not None:
+			copy_param(model , p_model)
+		model = model.to(device)
+
+		optimer , loss_func = get_others(C , model)
 
 		E.log("%d th run starts on device %d\n" % (run_id , device))
 

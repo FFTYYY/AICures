@@ -12,7 +12,7 @@ def evaluate(C , model , dataset , loss_func , epoch_id , run_id , device , eval
 	tot_pos_ps = []
 
 	ac_loss = 0
-	pbar = tqdm(range(batch_num) , ncols = 130 , desc = "[%d]%sing. Epoch %d" % (
+	pbar = tqdm(range(batch_num) , ncols = 130 , desc = "[{0}]{1}ing. Epoch {2}".format(
 		run_id , eval_name , epoch_id
 	))
 	for step , batch_id in enumerate(pbar):

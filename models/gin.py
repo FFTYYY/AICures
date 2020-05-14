@@ -4,20 +4,21 @@ import torch.nn.functional as F
 import dgl
 from .base import Base
 from dgl import batch , unbatch
-from dgl.nn.pytorch.conv import GraphConv
+from dgl.nn.pytorch.conv import GINConv
 import pdb
 from functools import partial
 
 class Model(Base):
-	def __init__(self , num_layers , d , out_d , residual , emb_item_nums , **kwargs ):
+	def __init__(self , num_layers , d , out_d , emb_item_nums , **kwargs ):
 
 		super().__init__(**{x + "_num" : emb_item_nums[x] for x in emb_item_nums} , emb_size = d)
 
 		self.d = d
 		self.num_layers = num_layers 
-		self.residual = residual
 
-		self.layers = nn.ModuleList([GraphConv(d, d) for _ in range(num_layers)])
+		self.layers = nn.ModuleList([
+			GINConv(apply_func = nn.Linear(d,d) , aggregator_type = "sum")
+		for _ in range(num_layers)])
 
 		self.ln = nn.Linear(d , out_d)
 

@@ -1,5 +1,6 @@
 from config import C , E
 from train_procedure.kfold_validation import kfold
+from train_procedure.pre_training import pretrain
 from YTools.experiment_helper.logger import Logger
 import pdb
 
@@ -16,8 +17,10 @@ def main():
 	E.new_variable("Dev Loss")
 	E.new_variable("Test Loss")
 
-
-	kfold(C)
+	model = None
+	if C.pretrain:
+		model = pretrain(C , "AID1706_binarized_sars_scaffold" , 1)
+	kfold(C , p_model = model)
 
 
 if __name__ == "__main__":

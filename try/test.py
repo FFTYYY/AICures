@@ -6,6 +6,7 @@ import numpy as np
 import pdb
 
 g = pysmiles.read_smiles("CN1CC[C@@]23C=C[C@@H](C[C@@H]2OC4=C(C=CC(=C34)C1)OC)O.Br")
+g = pysmiles.read_smiles("O=C(NN=Cc1ccc([N+](=O)[O-])o1)c1ccc(O)cc1")
 
 for i in range(30):
 	for j in range(30):
@@ -14,6 +15,9 @@ for i in range(30):
 		except Exception:
 			continue
 		print ("%d - %d" % (i,j) , e)
+
+for i in range(min(30 , len(g.nodes))):
+	print (g.nodes[i])
 
 pdb.set_trace()
 #g = dgl.DGLGraph(g)

@@ -22,7 +22,7 @@ def train(C , model , dataset , loss_func , optimer , epoch_id , run_id , device
 	sampler = Sampler(dataset)
 
 	ac_losses = 0
-	pbar = tqdm(range(batch_num) , ncols = 130 , desc = "[%d]Traning. Epoch %d" % (run_id , epoch_id))
+	pbar = tqdm(range(batch_num) , ncols = 130 , desc = "[{0}]Training. Epoch {1}".format(run_id , epoch_id))
 	for step , batch_id in enumerate(pbar):
 
 		bdata = sampler.sample(C.bs) 

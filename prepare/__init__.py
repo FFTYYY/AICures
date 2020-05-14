@@ -3,12 +3,14 @@ import torch as tc
 import random
 from config import E
 from .dataloader import load_data_tt , load_data_tdt
-from .graph_parse import base_parse , get_element_num
+from .graph_parse import base_parse , get_emb_item_nums
 from models import get_model_class
+from tqdm import tqdm
 
 def process_graphs(dataset):
-	lab_num = -1	
-	for i , (g , label) in enumerate(dataset):
+	lab_num = -1
+	
+	for i , (g , label) in tqdm(enumerate(dataset) , ncols = 100 , desc = "Processing..."):
 
 		dgl_g = base_parse(g)
 		dataset[i] = [dgl_g , label]
@@ -19,20 +21,20 @@ def process_graphs(dataset):
 
 def get_data(C , fold = 0):
 
-	if fold == "test":
-		trainset , testset = load_data_tt(C)
+	if fold == "test": #读取用于提交的训练-测试集
+		trainset , testset = load_data_tt(C , C.data)
 
 		dev_size = int(len(trainset) * C.dev_prop)
 		devset   = trainset[:dev_size]
 		trainset = trainset[dev_size:]
-	else: #对 k-fold test，直接读取训练集验证集测试集
-		trainset , devset , testset = load_data_tdt(C , path = "train_cv/fold_%d/" % fold)
-
+	elif isinstance(fold , int) : #对 k-fold test，直接读取训练集验证集测试集
+		trainset , devset , testset = load_data_tdt(C , C.data , path = "train_cv/fold_%d/" % fold)
+	else: # fold是某个dataset文件夹的名字
+		trainset , devset , testset = load_data_tdt(C , fold)
 
 	trainset , lab_num = process_graphs(trainset)
 	testset  , _       = process_graphs(testset)
 	devset   , _ 	   = process_graphs(devset)
-
 
 	return (trainset , devset , testset) , lab_num
 
@@ -41,7 +43,8 @@ def get_model(C , lab_num):
 		num_layers 	= C.num_layers , 
 		d 			= C.d , 
 		out_d 		= lab_num , 
-		element_num = get_element_num() , 
+		residual 	= C.residual , 
+		emb_item_nums = get_emb_item_nums()
 	).cuda()
 
 	return model
