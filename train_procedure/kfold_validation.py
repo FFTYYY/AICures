@@ -7,8 +7,6 @@ from utils import copy_param
 def kfold(C , k = 10 , choose_one = [] , p_model = None):
 	device = 0
 
-	metric = "PRC-AUC"
-
 	roc_aucs 	= []
 	prc_aucs 	= []
 	for run_id in range(k):
@@ -32,7 +30,7 @@ def kfold(C , k = 10 , choose_one = [] , p_model = None):
 		tes_roc_auc = -1
 		tes_prc_auc = -1
 		for epoch_id in range(C.num_epoch):
-			model = train(C, model, trainset, loss_func, optimer, epoch_id, run_id, device)
+			model , train_loss = train(C, model, trainset, loss_func, optimer, epoch_id, run_id, device)
 			droc_auc , dprc_auc = evaluate(C, model, devset , loss_func, epoch_id, run_id, device, "Dev")
 			troc_auc , tprc_auc = evaluate(C, model, testset, loss_func, epoch_id, run_id, device, "Test")
 
@@ -41,18 +39,22 @@ def kfold(C , k = 10 , choose_one = [] , p_model = None):
 			E.log("Test Roc-Auc = %.4f Prc-Auc = %.4f" % (troc_auc , tprc_auc))
 			E.log()
 
-			if best_epoch < 0 or dprc_auc > best_metric or C.no_valid: #no_valid：总是更新最佳epoch
+			if C.train_loss_val:
+				metric_val = -train_loss
+			else:
+				metric_val = dprc_auc
+
+			if (best_epoch < 0 or dprc_auc > best_metric) or C.no_valid:
 				best_epoch 	= epoch_id
-				best_metric = dprc_auc
+				best_metric = metric_val
 				tes_roc_auc = troc_auc
 				tes_prc_auc = tprc_auc
 
 		E.log("%d th run ends. best epoch = %d" % (run_id , best_epoch))
-		E.log("Best Dev %s = %.4f"                     % (metric , best_metric))
+		E.log("Best metric = %.4f"                     % (best_metric))
 		E.log("Got Test Roc-Auc = %.4f Prc-Auc = %.4f" % (tes_roc_auc , tes_prc_auc))
 		E.log()
 
-		E["Dev %s" % metric]["Best"].update(best_metric , run_id)
 		E["Test ROC-AUC"]["Best"].update(tes_roc_auc , run_id)
 		E["Test PRC-AUC"]["Best"].update(tes_prc_auc , run_id)
 

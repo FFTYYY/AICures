@@ -3,7 +3,7 @@ import torch as tc
 import random
 from entry import E
 from .dataloader import load_data_tt , load_data_tdt , load_data_files
-from .graph_parse import base_parse , get_emb_item_nums
+from .graph_parse import base_parse
 from models import get_model_class
 from tqdm import tqdm
 

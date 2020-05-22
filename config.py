@@ -15,6 +15,7 @@ def get_arg_proxy():
 	prox.add_argument("bs"			, type = int   , default = 10)
 
 	prox.add_store_true("no_valid")
+	prox.add_store_true("train_loss_val")
 
 	# model
 	prox.add_argument("model" 		, type = str   , default = "gcn")

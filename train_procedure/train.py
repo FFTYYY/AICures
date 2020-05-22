@@ -43,6 +43,7 @@ def train(C , model , dataset , loss_func , optimer , epoch_id , run_id , device
 
 		pbar.set_postfix_str("recent loss = %.4f" % (ac_losses / (step + 1)))
 
-	E["Train Loss"][str(run_id)].update((ac_losses / (step + 1)) , epoch_id)
+	loss = ac_losses / (step + 1)
+	E["Train Loss"][str(run_id)].update(loss , epoch_id)
 
-	return model
+	return model , loss
