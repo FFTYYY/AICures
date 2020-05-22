@@ -1,4 +1,4 @@
-from config import C , E
+from entry import C , E
 from train_procedure.kfold_validation import kfold
 from train_procedure.pre_training import pretrain
 from YTools.experiment_helper.logger import Logger
@@ -19,7 +19,11 @@ def main():
 
 	model = None
 	if C.pretrain:
-		model = pretrain(C , "AID1706_binarized_sars_scaffold" , 1)
+		model = pretrain(C , ["AID1706_binarized_sars_scaffold/train.csv"] , C.pt_epoch , 300 , 300)
+		# model = pretrain(C , ["ecoli_scaffold/train.csv"] , C.pt_epoch , 90 , 90 , model = model)
+		# model = pretrain(C , ["the_data/bace.csv"] , C.pt_epoch , model = model)
+		# model = pretrain(C , "the_data/bbbp.csv" , C.pt_epoch , 500 , 500 , model = model)
+		# model = pretrain(C , "the_data/hiv.csv" , C.pt_epoch , 1400 , 1400 , model = model)
 	kfold(C , p_model = model)
 
 

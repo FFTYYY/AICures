@@ -2,8 +2,9 @@ import torch as tc
 import fitlog
 from tqdm import tqdm
 import pdb
-from config import E
+from entry import E
 import random
+
 class Sampler:
 	def __init__(self , set):
 		self.set = set

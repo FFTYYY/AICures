@@ -1,4 +1,4 @@
-from config import E
+from entry import E
 from prepare import get_data , get_model , get_others
 from .train import train
 from .evaluate import evaluate
@@ -41,7 +41,7 @@ def kfold(C , k = 10 , choose_one = [] , p_model = None):
 			E.log("Test Roc-Auc = %.4f Prc-Auc = %.4f" % (troc_auc , tprc_auc))
 			E.log()
 
-			if best_epoch < 0 or dprc_auc > best_metric:
+			if best_epoch < 0 or dprc_auc > best_metric or C.no_valid: #no_valid：总是更新最佳epoch
 				best_epoch 	= epoch_id
 				best_metric = dprc_auc
 				tes_roc_auc = troc_auc

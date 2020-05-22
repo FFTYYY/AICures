@@ -1,7 +1,7 @@
 import torch as tc
 from tqdm import tqdm
 import pdb
-from config import E
+from entry import E
 from sklearn.metrics import roc_auc_score , auc , precision_recall_curve 
 
 def evaluate(C , model , dataset , loss_func , epoch_id , run_id , device , eval_name):

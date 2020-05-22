@@ -6,7 +6,7 @@ import numpy as np
 import pdb
 
 g = pysmiles.read_smiles("CN1CC[C@@]23C=C[C@@H](C[C@@H]2OC4=C(C=CC(=C34)C1)OC)O.Br")
-g = pysmiles.read_smiles("O=C(NN=Cc1ccc([N+](=O)[O-])o1)c1ccc(O)cc1")
+g = pysmiles.read_smiles("O=[N+]([O-])C(Br)(CO)CO")
 
 for i in range(30):
 	for j in range(30):
@@ -19,7 +19,7 @@ for i in range(30):
 for i in range(min(30 , len(g.nodes))):
 	print (g.nodes[i])
 
-pdb.set_trace()
+#pdb.set_trace()
 #g = dgl.DGLGraph(g)
 
 def draw(g):
@@ -27,18 +27,20 @@ def draw(g):
 
 	def make_color(x):
 		if x == 'C':
-			return "red"
+			return "gray"
 		if x == 'N':
 			return "blue"
 		if x == 'O':
-			return "green"
-		return (0.3 , 0.3 , 0.3)
+			return "red"
+		return "green"
 
 	
 	pos = nx.kamada_kawai_layout(g)
 	node_type = [g.nodes[i]["element"] for i in range(len(g.nodes))]
 
-	nx.draw(g , pos , node_size = 80 , node_color = [make_color(x) for x in node_type])
+	node_labels = nx.get_node_attributes(g, "element")
+	nx.draw_networkx_labels(g , pos , labels = node_labels)
+	nx.draw(g , pos , node_size = 500 , node_color = [make_color(x) for x in node_type])
 
 	plt.show()
 

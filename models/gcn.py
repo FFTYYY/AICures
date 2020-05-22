@@ -27,7 +27,11 @@ class Model(Base):
 		x = self.get_node_emb(g)
 
 		for i , layer in enumerate(self.layers):
+			old_x = x
 			x = F.relu(layer(g , x))
+			if self.residual:
+				x = x + old_x
+
 		x = self.ln(x)
 
 		g.ndata["x"] = x

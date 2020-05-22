@@ -1,8 +1,8 @@
-from fitterlog.interface import new_or_load_experiment
+import argparse
 from fitterlog.arg_proxy.arg_proxy import ArgProxy
-from YTools.experiment_helper import set_random_seed
+import sys
 
-def get_prox():
+def get_arg_proxy():
 	prox = ArgProxy()
 
 	# data
@@ -14,6 +14,8 @@ def get_prox():
 	prox.add_argument("num_epoch"	, type = int   , default = 20)
 	prox.add_argument("bs"			, type = int   , default = 10)
 
+	prox.add_store_true("no_valid")
+
 	# model
 	prox.add_argument("model" 		, type = str   , default = "gcn")
 	prox.add_argument("d" 	 		, type = int   , default = 128)
@@ -24,16 +26,8 @@ def get_prox():
 	prox.add_argument("info" 		, type = str   , default = "" , editable = True)
 	prox.add_argument("group" 		, type = str   , default = "default")
 	prox.add_argument("seed" 		, type = int   , default = 2333)
+	prox.add_argument("pt_epoch" 	, type = int   , default = 1)
 	prox.add_store_true("pretrain")
 
 	return prox
 
-prox = get_prox()
-
-C = prox.assign_from_cmd()
-
-E = new_or_load_experiment(project_name = "PRML" , group_name = C.group)
-E.use_argument_proxy(prox)
-
-if C.seed > 0:
-	set_random_seed(C.seed)

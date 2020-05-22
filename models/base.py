@@ -7,10 +7,10 @@ class Base(nn.Module):
 	def __init__(self , element_num , aromatic_num , charge_num , hcount_num , emb_size):
 		'''包含基本的 embedding 模块'''
 		super().__init__()
-		self.emb_elem = nn.Embedding(200 , emb_size)
-		self.emb_arom = nn.Embedding(200 , emb_size)
-		self.emb_chrg = nn.Embedding(200 , emb_size)
-		self.emb_hcnt = nn.Embedding(200 , emb_size)
+		self.emb_elem = nn.Embedding(500 , emb_size)
+		self.emb_arom = nn.Embedding(500 , emb_size)
+		self.emb_chrg = nn.Embedding(500 , emb_size)
+		self.emb_hcnt = nn.Embedding(500 , emb_size)
 	
 	def get_node_emb(self , g):
 
