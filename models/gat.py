@@ -9,9 +9,9 @@ import pdb
 from functools import partial
 
 class Model(Base):
-	def __init__(self , num_layers , d , out_d , residual , emb_item_nums , **kwargs ):
+	def __init__(self , num_layers , d , out_d , residual , reinit , **kwargs ):
 
-		super().__init__(**{x + "_num" : emb_item_nums[x] for x in emb_item_nums} , emb_size = d)
+		super().__init__(emb_size = d)
 
 		self.d = d
 		self.num_layers = num_layers 

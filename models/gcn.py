@@ -9,9 +9,9 @@ import pdb
 from functools import partial
 
 class Model(Base):
-	def __init__(self , num_layers , d , out_d , residual , emb_item_nums , **kwargs ):
+	def __init__(self , num_layers , d , out_d , residual , reinit , **kwargs ):
 
-		super().__init__(**{x + "_num" : emb_item_nums[x] for x in emb_item_nums} , emb_size = d)
+		super().__init__(emb_size = d)
 
 		self.d = d
 		self.num_layers = num_layers 
@@ -20,6 +20,13 @@ class Model(Base):
 		self.layers = nn.ModuleList([GraphConv(d, d) for _ in range(num_layers)])
 
 		self.ln = nn.Linear(d , out_d)
+
+		if reinit:
+			self.reinit_params()
+
+	def reinit_params(self):
+		for layer in self.layers:
+			nn.init.uniform_(layer.weight , 0 , 1e-5)
 
 	def forward(self , gs):
 

@@ -21,6 +21,7 @@ def get_arg_proxy():
 	prox.add_argument("d" 	 		, type = int   , default = 128)
 	prox.add_argument("num_layers" 	, type = int   , default = 2)
 	prox.add_store_true("residual")
+	prox.add_store_true("reinit")
 
 	# others
 	prox.add_argument("info" 		, type = str   , default = "" , editable = True)

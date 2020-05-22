@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import pdb
 
 class Base(nn.Module):
-	def __init__(self , element_num , aromatic_num , charge_num , hcount_num , emb_size):
+	def __init__(self , emb_size):
 		'''包含基本的 embedding 模块'''
 		super().__init__()
 		self.emb_elem = nn.Embedding(500 , emb_size)
