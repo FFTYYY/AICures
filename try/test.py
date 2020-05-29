@@ -19,7 +19,7 @@ for i in range(30):
 for i in range(min(30 , len(g.nodes))):
 	print (g.nodes[i])
 
-#pdb.set_trace()
+pdb.set_trace()
 #g = dgl.DGLGraph(g)
 
 def draw(g):

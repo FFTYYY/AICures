@@ -13,6 +13,6 @@ def pretrain(C , data , num_epoch = 10 , pos_lim = 300, neg_lim = 300 , model = 
 	optimer , loss_func 					= get_others(C , model)
 
 	for epoch_id in range(num_epoch):
-		model = train(C, model, trainset, loss_func, optimer, epoch_id, "PT", device)
+		model , _ = train(C, model, trainset, loss_func, optimer, epoch_id, "PT", device)
 
 	return model

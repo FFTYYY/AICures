@@ -10,7 +10,7 @@ def get_arg_proxy():
 
 	# train & test
 	prox.add_argument("dev_prop"	, type = float , default = 0.1)
-	prox.add_argument("lr"			, type = float , default = 1e-2)
+	prox.add_argument("lr"			, type = float , default = 1e-3)
 	prox.add_argument("num_epoch"	, type = int   , default = 20)
 	prox.add_argument("bs"			, type = int   , default = 10)
 

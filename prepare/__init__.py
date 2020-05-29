@@ -53,7 +53,7 @@ def get_model(C , lab_num):
 	return model
 
 def get_others(C , model):
-	optimer   = tc.optim.Adam(params = model.parameters() , lr = C.lr)
+	optimer   = tc.optim.Adam(params = model.parameters() , lr = C.lr , weight_decay = 1e-8)
 	loss_func = tc.nn.CrossEntropyLoss()
 
 	return optimer , loss_func
