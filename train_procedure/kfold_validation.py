@@ -1,10 +1,15 @@
 from entry import E
 from prepare import get_data , get_model , get_others
+from prepare.dataloader import load_fingers
 from .train import train
 from .evaluate import evaluate
-from utils import copy_param
+from utils import copy_param , save_model
 
 def kfold(C , k = 10 , choose_one = [] , p_model = None):
+
+	if C.finger or C.mol2vec:
+		finger_dict = load_fingers(C , C.data)
+
 	device = 0
 
 	roc_aucs 	= []
@@ -30,9 +35,9 @@ def kfold(C , k = 10 , choose_one = [] , p_model = None):
 		tes_roc_auc = -1
 		tes_prc_auc = -1
 		for epoch_id in range(C.num_epoch):
-			model , train_loss = train(C, model, trainset, loss_func, optimer, epoch_id, run_id, device)
-			droc_auc , dprc_auc = evaluate(C, model, devset , loss_func, epoch_id, run_id, device, "Dev")
-			troc_auc , tprc_auc = evaluate(C, model, testset, loss_func, epoch_id, run_id, device, "Test")
+			model , train_loss = train(C, model, trainset, loss_func, optimer, epoch_id, run_id, device , finger_dict)
+			droc_auc , dprc_auc = evaluate(C, model, devset , loss_func, epoch_id, run_id, device, "Dev" , finger_dict)
+			troc_auc , tprc_auc = evaluate(C, model, testset, loss_func, epoch_id, run_id, device, "Test" , finger_dict)
 
 			E.log("Epoch %d of run %d ended." % (epoch_id , run_id))
 			E.log("Dev  Roc-Auc = %.4f Prc-Auc = %.4f" % (droc_auc , dprc_auc))
@@ -44,11 +49,12 @@ def kfold(C , k = 10 , choose_one = [] , p_model = None):
 			else:
 				metric_val = dprc_auc
 
-			if (best_epoch < 0 or dprc_auc > best_metric) or C.no_valid:
+			if (best_epoch < 0 or metric_val > best_metric) or C.no_valid:
 				best_epoch 	= epoch_id
 				best_metric = metric_val
 				tes_roc_auc = troc_auc
 				tes_prc_auc = tprc_auc
+				save_model(model , C.save_path , E.core.id , str(run_id))
 
 		E.log("%d th run ends. best epoch = %d" % (run_id , best_epoch))
 		E.log("Best metric = %.4f"                     % (best_metric))
@@ -60,6 +66,9 @@ def kfold(C , k = 10 , choose_one = [] , p_model = None):
 
 		roc_aucs.append(tes_roc_auc)
 		prc_aucs.append(tes_prc_auc)
+
+		E.log("model saved.")
+
 		E.log("--------------------------------------------------------------")
 
 	roc_auc_avg = sum(roc_aucs) / len(roc_aucs)

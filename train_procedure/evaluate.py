@@ -4,7 +4,7 @@ import pdb
 from entry import E
 from sklearn.metrics import roc_auc_score , auc , precision_recall_curve 
 
-def evaluate(C , model , dataset , loss_func , epoch_id , run_id , device , eval_name):
+def evaluate(C , model , dataset , loss_func , epoch_id , run_id , device , eval_name , finger_dict = None):
 	model = model.eval()
 	batch_num = (len(dataset) // C.bs) + int(len(dataset) % C.bs != 0)
 
@@ -19,17 +19,24 @@ def evaluate(C , model , dataset , loss_func , epoch_id , run_id , device , eval
 
 		bdata  = dataset[batch_id * C.bs : (batch_id+1) * C.bs]
 		gs 	   = [d[0] for d in bdata]
+		smiles = [d[2] for d in bdata]
 		labels = [d[1] for d in bdata]
+		if finger_dict:
+			fingers = [finger_dict.get(s , [0] * C.finger_size) for s in smiles ]
+			fingers = tc.LongTensor(fingers).cuda(device) #(bs , 1024)
+		else:
+			fingers = None
 
 		tot_labels += labels
 		labels = tc.LongTensor(labels).cuda(device)
 
 		with tc.no_grad():
-			pred  = model(gs)
+			pred  = model(gs , smiles = smiles , fingers = fingers)
 			loss = loss_func(pred , labels)
+			pred = tc.softmax(pred , -1)
 
 		ac_loss += float(loss)
-		tot_pos_ps += [float(x[1]) for x in tc.softmax(pred , -1)]
+		tot_pos_ps += [float(x[1]) for x in pred]
 
 		pbar.set_postfix_str("avg loss = %.4f" % (ac_loss / (step+1)))
 

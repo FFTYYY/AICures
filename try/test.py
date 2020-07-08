@@ -5,8 +5,8 @@ import networkx as nx
 import numpy as np
 import pdb
 
-g = pysmiles.read_smiles("CN1CC[C@@]23C=C[C@@H](C[C@@H]2OC4=C(C=CC(=C34)C1)OC)O.Br")
-g = pysmiles.read_smiles("O=[N+]([O-])C(Br)(CO)CO")
+g = pysmiles.read_smiles("CN1CC[C@@]23C=C[C@@H](C[C@@H]2OC4=C(C=CCC(=C34)C1)OC)O.Br")
+#g = pysmiles.read_smiles("O=[N+]([O-])C(Br)(CO)CO")
 
 for i in range(30):
 	for j in range(30):

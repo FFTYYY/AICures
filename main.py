@@ -19,7 +19,7 @@ def main():
 
 	model = None
 	if C.pretrain:
-		model = pretrain(C , ["AID1706_binarized_sars_scaffold/train.csv"] , C.pt_epoch , 300 , 300)
+		model = pretrain(C , ["AID1706_binarized_sars_scaffold/train.csv"] , C.pt_epoch , 300 , int(300 * (2 ** C.pos_aug)))
 		# model = pretrain(C , ["ecoli_scaffold/train.csv"] , C.pt_epoch , 90 , 90 , model = model)
 		# model = pretrain(C , ["the_data/bace.csv"] , C.pt_epoch , model = model)
 		# model = pretrain(C , "the_data/bbbp.csv" , C.pt_epoch , 500 , 500 , model = model)

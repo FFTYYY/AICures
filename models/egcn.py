@@ -33,7 +33,7 @@ class RConv(nn.Module):
 		if self._norm == "both":
 			degs = graph.out_degrees().to(feat.device).float().clamp(min=1)
 			norm = th.pow(degs, -0.5)
-			shp = norm.shape + (1,) * (feat.dim() - 1)
+			shp  = norm.shape + (1,) * (feat.dim() - 1)
 			norm = th.reshape(norm, shp)
 			feat = feat * norm
 		return feat
@@ -42,12 +42,13 @@ class RConv(nn.Module):
 		if self._norm != "none":
 			degs = graph.in_degrees().to(feat.device).float().clamp(min=1)
 			norm = th.pow(degs, -0.5) # if norm == "both"
-			shp = norm.shape + (1,) * (feat.dim() - 1)
+			shp  = norm.shape + (1,) * (feat.dim() - 1)
 			norm = th.reshape(norm, shp)
-			rst = rst * norm
+			rst  = rst * norm
 		return rst
 
 	def my_message_func(self , edges):
+		'''把o作为一个线性变换'''
 
 		o_w = self.o_emb(edges.data["o"]).view(-1 , self._out_feats , self._in_feats)
 		h = edges.src["h"].view(-1 , self._in_feats , 1)
@@ -91,15 +92,24 @@ class RConv(nn.Module):
 from .base import Base as Base
 
 class Model(Base):
-	def __init__(self , num_layers , d , out_d , residual , reinit , **kwargs ):
+	def __init__(self , num_layers , d , out_d , residual , reinit , layer_norm , dropout , activate , 
+						finger , finger_size , **kwargs ):
 
 		super().__init__(emb_size = d)
 
-		self.d = d
+		self.d 			= d
 		self.num_layers = num_layers 
-		self.residual = residual
+		self.residual 	= residual
+		self.layer_norm = layer_norm
+		self.activate 	= activate
+
+		self.finger_ln = nn.Linear(finger_size , d)
+		self.fuse_finger = nn.Linear(2*d , d)
 
 		self.layers = nn.ModuleList([RConv(d, d) for _ in range(num_layers)])
+		if layer_norm:
+			self.norms = nn.ModuleList([nn.LayerNorm(d) for _ in range(num_layers)])
+		self.dropout = nn.ModuleList([nn.Dropout(dropout) for _ in range(num_layers)])
 
 		self.ln = nn.Linear(d , out_d)
 
@@ -110,18 +120,28 @@ class Model(Base):
 		for layer in self.layers:
 			nn.init.uniform_(layer.o_emb.weight , 0 , 1e-5)
 
-	def forward(self , gs):
+	def forward(self , gs , fingers = None , **kwargs):
 
 		g = batch(gs)
 		x = self.get_node_emb(g)
 
 		for i , layer in enumerate(self.layers):
 			old_x = x
-			x = F.relu(layer(g , x))
+
+			x = layer(g,x)
+
+			if self.activate == "relu":
+				x = F.relu(x)
+			elif self.activate == "leaky":
+				x = F.leaky_relu(x , 0.1)
+
+			if self.layer_norm:
+				x = self.norms[i](x)
+
 			if self.residual:
 				x = x + old_x
 
-		x = self.ln(x)
+			x = self.dropout[i](x)
 
 		g.ndata["x"] = x
 		gs = unbatch(g)
@@ -129,5 +149,12 @@ class Model(Base):
 		xs = [g.ndata["x"] for g in gs]
 		xs = [x.mean(dim = 0 , keepdim = True) for x in xs]
 		xs = tc.cat(xs , dim = 0)
+
+		if fingers is not None:
+			finger_x = F.relu(self.finger_ln(fingers.float()))
+			xs = tc.cat([xs , finger_x] , dim = -1)
+			xs = F.relu(self.fuse_finger(xs))
+
+		xs = self.ln(xs)
 
 		return xs

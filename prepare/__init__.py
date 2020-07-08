@@ -3,17 +3,17 @@ import torch as tc
 import random
 from entry import E
 from .dataloader import load_data_tt , load_data_tdt , load_data_files
-from .graph_parse import base_parse
+from .graph_parse import base_parse , augment_dataset
 from models import get_model_class
 from tqdm import tqdm
 
-def process_graphs(dataset):
+def process_graphs(C , dataset):
 	lab_num = -1
 	
-	for i , (g , label) in tqdm(enumerate(dataset) , ncols = 100 , desc = "Processing..."):
+	for i , (g , label , smiles) in tqdm(enumerate(dataset) , ncols = 100 , desc = "Processing..."):
 
-		dgl_g = base_parse(g)
-		dataset[i] = [dgl_g , label]
+		dgl_g = base_parse(C , g)
+		dataset[i] = [dgl_g , label , smiles]
 
 		lab_num = max(lab_num , label) #统计标签数
 
@@ -38,9 +38,12 @@ def get_data(C , fold = 0 , pos_lim = -1, neg_lim = -1 , files = False):
 		else:
 			trainset = load_data_files(C , fold , pos_lim = pos_lim , neg_lim = neg_lim)
 			devset , testset = [] , []
-	trainset , lab_num = process_graphs(trainset)
-	testset  , _       = process_graphs(testset)
-	devset   , _ 	   = process_graphs(devset)
+			
+	trainset = augment_dataset(C , trainset)
+
+	trainset , lab_num = process_graphs(C , trainset)
+	testset  , _       = process_graphs(C , testset)
+	devset   , _ 	   = process_graphs(C , devset)
 
 	return (trainset , devset , testset) , lab_num
 
@@ -53,7 +56,10 @@ def get_model(C , lab_num):
 	return model
 
 def get_others(C , model):
-	optimer   = tc.optim.Adam(params = model.parameters() , lr = C.lr , weight_decay = 1e-8)
-	loss_func = tc.nn.CrossEntropyLoss()
+	optimer   = tc.optim.Adam(params = model.parameters() , lr = C.lr , weight_decay = C.weight_decay)
+	if C.loss_weight:
+		loss_func = tc.nn.CrossEntropyLoss(weight = tc.Tensor([0.1 , 1]).cuda())
+	else:
+		loss_func = tc.nn.CrossEntropyLoss()
 
 	return optimer , loss_func

@@ -119,7 +119,7 @@ class Model(Base):
 		for layer in self.layers:
 			nn.init.uniform_(layer.e_emb.weight , 0 , 1e-5)
 
-	def forward(self , gs):
+	def forward(self , gs , **kwargs):
 
 		g = batch(gs)
 		x = self.get_node_emb(g)

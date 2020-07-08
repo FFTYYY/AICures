@@ -4,6 +4,30 @@ from pysmiles import read_smiles
 import random
 import pdb
 import time
+import pickle
+
+def load_fingers(C , data):
+	if C.finger:
+		path = P.join("data/" , data , "fingers")
+
+		with open(path , "rb") as fil:
+			fingers = pickle.load(fil)
+
+		C.finger_size = 1024
+
+	elif C.mol2vec:
+		path = P.join("data/" , data , "mol2vec.pkl") #改成mol2vec
+
+
+		with open(path , "rb") as fil:
+			fingers = pickle.load(fil)
+
+		for x in fingers:
+			fingers[x] = fingers[x].mean(0)
+
+		C.finger_size = 100
+
+	return fingers
 
 def myp(x = ""):
 	sys.stderr.write(str(x) + "\n")
@@ -44,9 +68,10 @@ def load_data_file(path , mode , pos_lim = -1 , neg_lim = -1):
 			if (pos_lim > 0 and num_pos > pos_lim) and (neg_lim > 0 and num_neg > neg_lim):
 				break
 
-			mol = read_smiles(mol) #将smiles字符串转成networkx graph
+			mol_g = read_smiles(mol) #将smiles字符串转成networkx graph
+			#mol_g.smiles = mol
 
-			data.append([mol , int(label)])
+			data.append([mol_g , int(label) , mol])
 
 			if i % 1000 == 0:
 				sys.stderr.write("%d\n" % i)

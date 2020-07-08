@@ -22,7 +22,7 @@ class Model(Base):
 
 		self.ln = nn.Linear(d , out_d)
 
-	def forward(self , gs):
+	def forward(self , gs , **kwargs):
 
 		g = batch(gs)
 		x = self.get_node_emb(g)
