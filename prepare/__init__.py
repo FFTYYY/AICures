@@ -24,9 +24,10 @@ def get_data(C , fold = 0 , pos_lim = -1, neg_lim = -1 , files = False):
 	if fold == "test": #读取用于提交的训练-测试集
 		trainset , testset = load_data_tt(C , C.data , pos_lim = pos_lim , neg_lim = neg_lim)
 
-		dev_size = int(len(trainset) * C.dev_prop)
-		devset   = trainset[:dev_size]
-		trainset = trainset[dev_size:]
+		# dev_size = int(len(trainset) * C.dev_prop)
+		# devset   = trainset[:dev_size]
+		# trainset = trainset[dev_size:]
+		devset = []
 	elif isinstance(fold , int) : #对 k-fold test，直接读取训练集验证集测试集
 		trainset , devset , testset = load_data_tdt(
 			C , C.data , 

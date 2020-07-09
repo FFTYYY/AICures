@@ -3,8 +3,10 @@ from tqdm import tqdm
 import pdb
 from entry import E
 from sklearn.metrics import roc_auc_score , auc , precision_recall_curve 
+import random
 
-def evaluate(C , model , dataset , loss_func , epoch_id , run_id , device , eval_name , finger_dict = None):
+def evaluate(C , model , dataset , loss_func , epoch_id , run_id , device , eval_name , 
+															finger_dict = None , ret_preds = False):
 	model = model.eval()
 	batch_num = (len(dataset) // C.bs) + int(len(dataset) % C.bs != 0)
 
@@ -27,13 +29,17 @@ def evaluate(C , model , dataset , loss_func , epoch_id , run_id , device , eval
 		else:
 			fingers = None
 
+		if -1 in labels: #实际上没有label，也不关心label
+			labels = [int(random.random() + 0.5) for _ in labels]
+
 		tot_labels += labels
 		labels = tc.LongTensor(labels).cuda(device)
 
 		with tc.no_grad():
 			pred  = model(gs , smiles = smiles , fingers = fingers)
 			loss = loss_func(pred , labels)
-			pred = tc.softmax(pred , -1)
+			if not hasattr(model , "softmaxed"):
+				pred = tc.softmax(pred , -1)
 
 		ac_loss += float(loss)
 		tot_pos_ps += [float(x[1]) for x in pred]
@@ -44,8 +50,11 @@ def evaluate(C , model , dataset , loss_func , epoch_id , run_id , device , eval
 	p,r,thr = precision_recall_curve(tot_labels , tot_pos_ps)
 	prc_auc = auc(r , p)
 
-	E[eval_name + " Loss"  ][str(run_id)].update(ac_loss/batch_num , epoch_id)
+	E[eval_name + " Loss"  ][str(run_id)].update(ac_loss / batch_num , epoch_id)
 	E[eval_name + " ROC-AUC"][str(run_id)].update(roc_auc , epoch_id)
 	E[eval_name + " PRC-AUC"][str(run_id)].update(prc_auc , epoch_id)
 
+	if ret_preds:
+		return tot_pos_ps
+	
 	return roc_auc , prc_auc
